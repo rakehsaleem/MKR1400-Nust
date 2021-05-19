@@ -4,6 +4,7 @@
   Feed GSM SIM900A with Arduino's 5V
   +923132131321
   Code by IDAYU SABRI - MYBOTIC
+  modified by Rakeh- 4 Mar 2018
 */
 
 #include <SoftwareSerial.h>
