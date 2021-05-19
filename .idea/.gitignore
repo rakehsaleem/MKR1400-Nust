@@ -1,0 +1,10 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# CodeStream ignored files
+/../../MKR1400-Nust\.idea/codestream.xml
+# Datasource local storage ignored files
+/../../../../../../:\Users\mqs6680\PycharmProjects\MKR1400-Nust\.idea/dataSources/
+/dataSources.local.xml
+# Editor-based HTTP Client requests
+/httpRequests/
