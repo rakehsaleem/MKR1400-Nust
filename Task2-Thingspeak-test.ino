@@ -50,15 +50,14 @@ char readURLField[200];
 // I believe Thingspeak usually only uses 8 fields by Default...
 int t_light_sensor = 1; // field 1 - A Light Sensor TEMT6000
 int t_led_button = 2;   // field 2 - Green LED
-//int field3 = 3;         // field 3 - unutilised
-//int field3 = 4;         // field 4 - unutilised
-//int field3 = 5;         // field 5 - unutilised
-//int field3 = 6;         // field 6 - unutilised
+//int field3 = 3;       // field 3 - unutilised
+//int field3 = 4;       // field 4 - unutilised
+//int field3 = 5;       // field 5 - unutilised
+//int field3 = 6;       // field 6 - unutilised
 int t_latitude = 7;     // field 7 - to be utilised later with the GSM GPS Module
 int t_longitude = 8;    // field 8 - to be utilised later with the GSM GPS Module
 
-void setup() {
-
+void setup(){
   pinMode(13, OUTPUT);          // sets the digital pin 13 as output
   digitalWrite(13, LOW);        // sets the digital pin 13 off
 
@@ -85,10 +84,9 @@ void setup() {
   }
 }
 
-void loop() {
-
+void loop(){
    digitalWrite(13, LOW);        // sets the digital pin 13 off
-   int result = A0; //temporarily set a result manually, leter we can set the result based on a reading from a light sensor
+   int result = A0;              //temporarily set a result manually, later we can set the result based on a reading from a light sensor
 
   //Initizalize the URL by calling the Function to do so...
   String connectionMethod = "Write";
@@ -96,7 +94,6 @@ void loop() {
   connectToThingspeak(connectionMethod);
 
   // Now that we've performed a write into the t_led_button field, we can do a read
-
   connectionMethod = "Read";
   setupReadThingspeakURL(t_led_button);
   connectToThingspeak(connectionMethod);
@@ -126,13 +123,12 @@ void loop() {
     ;
 }
 
-void connectToThingspeak(String c_meth) {
-  /*
-   *  In order to make the original Test code for GSM SSL Web Client more moduler this function has been created which
-   *  takes an input of "Read" or "Write" and modifies the way it runs based on those values.
-   *  i.e. if it recieves "Read" then it will do a GET connection and pass the readURLField value through
-   *  if it recieves "Write" then it will do a PUT connection and pass the writeURLField value through...
-   */
+void connectToThingspeak(String c_meth)
+{
+    //In order to make the original Test code for GSM SSL Web Client more moduler this function has been created which
+    //takes an input of "Read" or "Write" and modifies the way it runs based on those values.
+    //i.e. if it recieves "Read" then it will do a GET connection and pass the readURLField value through
+    //if it recieves "Write" then it will do a PUT connection and pass the writeURLField value through...
 
   Serial.println("connecting...");
 
@@ -178,19 +174,11 @@ void connectToThingspeak(String c_meth) {
   delay(200);
 }
 
-void setupWriteThingspeakURL(int ifield, int iresult) {
-  /*
-   *  This Function is Designed to craft the URL required to write to a specific Thingspeak field when the user passes in an
-   *  Integer variable of the field number and an integer of the result you wish to publish to your Thingspeak Channel...
-   *  The crafted URL is written out to a global variable and can then be utilised in the connection function.
-   *  This crafted URL includes data from the Arduino_secrets.h file which contains items such as the Thingspeak Channel number
-   *  and write API key etc
-   */
-
+void setupWriteThingspeakURL(int ifield, int iresult)
+{
   // An Complete Example URL to Update Channel Field1 via Thingspeak
   // GET https://api.thingspeak.com/update?api_key=1234567890ABC&field1=0
   // Our URL is broken down below to give us the ability to update certain portions of the URL, such as the field number etc
-
   char t_fieldNumber[sizeof(ifield)/sizeof(int)]; //passed into the function as an int and converted to a char array
   char t_result[sizeof(iresult)/sizeof(int)]; //passed into the function as an int and converted to a char array
   char t_write_update[17] = "/update?api_key=";
@@ -200,7 +188,6 @@ void setupWriteThingspeakURL(int ifield, int iresult) {
   itoa(ifield, t_fieldNumber, 10); //where passed in field value gets converted from an int to a char array
   itoa(iresult, t_result, 10); //where passed in rsult value gets converted from an int to a char array
 
-
   //Build the custom Write URL to send data to my Thingspeak Channel via strcpy and strcat
   strcpy (writeURLField,t_write_update);
   strcat (writeURLField,writeapikey);
@@ -208,8 +195,7 @@ void setupWriteThingspeakURL(int ifield, int iresult) {
   strcat (writeURLField,t_fieldNumber);
   strcat (writeURLField,t_equal);
   strcat (writeURLField,t_result);
-
-} //end of writeThingspeak
+}
 
 void setupReadThingspeakURL(int r_ifield) {
   /*
@@ -239,6 +225,4 @@ void setupReadThingspeakURL(int r_ifield) {
   strcat (readURLField,t_json);
   strcat (readURLField,readapikey);
   strcat (readURLField,t_res);
-
-
-} //end of readThingspeak
+}
