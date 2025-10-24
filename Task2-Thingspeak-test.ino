@@ -27,7 +27,6 @@
  * 
  * Original Code by SMGS - 05 Feb 2018
  * Modified by Rakeh - 23 Apr 2018
- * OPTIMIZED for performance and reliability - 2024
  */
 
 // Required libraries
