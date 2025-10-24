@@ -10,7 +10,7 @@
  * - Memory monitoring utilities
  * - ThingSpeak integration helpers
  * 
- * Author: Optimized for MKR1400-Nust project
+ * Author: Rakeh Saleem
  * Date: 2024
  */
 
