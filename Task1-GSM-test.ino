@@ -19,7 +19,6 @@
  * 
  * Original Code by IDAYU SABRI - MYBOTIC
  * Modified by Rakeh - 4 Mar 2018
- * OPTIMIZED for performance and reliability - 2024
  * 
  * Usage:
  * Send commands via Serial Monitor:
