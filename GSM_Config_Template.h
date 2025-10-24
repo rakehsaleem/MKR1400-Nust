@@ -11,16 +11,15 @@
 // ============================================================================
 
 // SIM Card Configuration
-const char PINNUMBER[] = "";           // SIM PIN (empty if not required)
+const char PINNUMBER[] = "";            // SIM PIN (empty if not required)
 
 // GPRS/APN Configuration (modify for your network provider)
 const char GPRS_APN[] = "zonginternet"; // Change to your provider's APN
-const char GPRS_LOGIN[] = "";          // Usually empty
-const char GPRS_PASSWORD[] = "";       // Usually empty
+const char GPRS_LOGIN[] = "";           // Usually empty
+const char GPRS_PASSWORD[] = "";        // Usually empty
 
 // Common APN Settings by Country/Provider:
 // Pakistan: "zonginternet", "ufoneinternet", "jazzinternet"
-// India: "airtelgprs.com", "bsnlnet", "vodafone"
 // USA: "att.m2m", "verizon", "tmobile"
 // Europe: "internet", "web", "gprs"
 
