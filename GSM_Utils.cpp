@@ -13,7 +13,7 @@
  * - Memory monitoring and optimization
  * - ThingSpeak cloud platform integration
  * 
- * Author: Optimized for MKR1400-Nust project
+ * Author: Rakeh Saleem
  * Date: 2024
  */
 
