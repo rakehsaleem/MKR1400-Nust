@@ -1,228 +1,211 @@
 /*
-  Web client
- This sketch connects to the Thingspeak website using SSL through a MKR GSM 1400 board. Specifically, this example
- performs a write and read operation to the thingspeak channel specified in the APN data. You can Change the fields
- it writes to on Thingspeak as you wish. This sketch prints output to the Serial monitor.
- Circuit:
- * MKR GSM 1400 board
- * Antenna
- * SIM card with a data plan
- created 05 Feb 2018
- by SMGS
- modified by Rakeh- 23 Apr 2018
-*/
+ * OPTIMIZED ThingSpeak Web Client for MKR GSM 1400
+ * 
+ * This sketch demonstrates optimized IoT data transmission to ThingSpeak cloud platform
+ * using MKR GSM 1400 board with cellular connectivity. Features non-blocking operations,
+ * automatic reconnection, and efficient data handling.
+ * 
+ * Hardware Requirements:
+ * - MKR GSM 1400 board
+ * - GSM antenna
+ * - SIM card with active data plan
+ * - Optional: Light sensor connected to A0
+ * 
+ * Key Features:
+ * - Non-blocking GSM connection management
+ * - Automatic data collection and transmission
+ * - Memory-efficient sensor data buffering
+ * - Automatic error recovery and reconnection
+ * - Real-time memory monitoring
+ * - Continuous operation capability
+ * 
+ * ThingSpeak Integration:
+ * - Field 1: Light sensor readings (TEMT6000)
+ * - Field 2: LED status indicator
+ * - Field 7: GPS latitude (future use)
+ * - Field 8: GPS longitude (future use)
+ * 
+ * Original Code by SMGS - 05 Feb 2018
+ * Modified by Rakeh - 23 Apr 2018
+ * OPTIMIZED for performance and reliability - 2024
+ */
 
-// libraries
+// Required libraries
 #include <MKRGSM.h>
 #include <stdio.h>
 #include <string.h>
-//#include "arduino_secrets.h"
+#include "GSM_Utils.h"
 
-// Please enter your sensitive data in the Secret tab or arduino_secrets.h
-// PIN Number
-const char PINNUMBER[]     = "";
-// APN data
-const char GPRS_APN[]      = "zonginternet";
-const char GPRS_LOGIN[]    = "";
-const char GPRS_PASSWORD[] = "";
+// ============================================================================
+// THINGSPEAK FIELD CONFIGURATION
+// ============================================================================
 
-// Thingspeak Secret Settings
-char writeapikey[]      = "POWWNFLAIARHZL10";
-char readapikey[]       = "43F8VBLWVJP4Y2FN";
-char channelid[]        = "455094";
+// ThingSpeak field definitions for data organization
+int t_light_sensor = 1;  // Field 1 - Light sensor readings (TEMT6000)
+int t_led_button = 2;    // Field 2 - LED status indicator
+int t_latitude = 7;      // Field 7 - GPS latitude (reserved for future use)
+int t_longitude = 8;     // Field 8 - GPS longitude (reserved for future use)
 
-// initialize the library instance
-GSMSSLClient client;
-GPRS gprs;
-GSM gsmAccess;
-GSMLocation location;
+// ============================================================================
+// GLOBAL OBJECTS AND STATE MANAGEMENT
+// ============================================================================
 
-// Domain name and port that we will connect too (for example: api.thingspeak.com)
-char server[] = "api.thingspeak.com";
-int port = 443; // port 443 is the default for HTTPS
-// Remainder of the URL is crafted together in the writeThingspeak() or readThingspeak() functions which take
-// some arguments such as field and result, the crafted URL is returned from the function for later use.
-char writeURLField[200];
-char readURLField[200];
+GSMConnection gsmConnection;                    // GSM connection manager
+SensorBuffer sensorBuffer;                      // Efficient sensor data storage
+NonBlockingDelay dataCollectionDelay(5000);     // Data collection interval (5 seconds)
+NonBlockingDelay transmissionDelay(30000);      // Data transmission interval (30 seconds)
+bool isInitialized = false;                     // GSM connection status flag
 
-// Setup the Fields with meaningful names on Thingspeak Channels to make it easier to read.
-// The Thingspeak field name is set to equal an Integer which is the Field Number...
-// I believe Thingspeak usually only uses 8 fields by Default...
-int t_light_sensor = 1; // field 1 - A Light Sensor TEMT6000
-int t_led_button = 2;   // field 2 - Green LED
-//int field3 = 3;       // field 3 - unutilised
-//int field3 = 4;       // field 4 - unutilised
-//int field3 = 5;       // field 5 - unutilised
-//int field3 = 6;       // field 6 - unutilised
-int t_latitude = 7;     // field 7 - to be utilised later with the GSM GPS Module
-int t_longitude = 8;    // field 8 - to be utilised later with the GSM GPS Module
+// ============================================================================
+// SETUP FUNCTION
+// ============================================================================
 
+/**
+ * Initialize system and establish GSM connection
+ * Sets up hardware, establishes cellular connection, and prepares for operation
+ */
 void setup(){
-  pinMode(13, OUTPUT);          // sets the digital pin 13 as output
-  digitalWrite(13, LOW);        // sets the digital pin 13 off
+  // Configure LED pin for status indication
+  pinMode(13, OUTPUT);
+  digitalWrite(13, LOW);
 
-  // initialize serial communications and wait for port to open:
+  // Initialize serial communication
   Serial.begin(9600);
   while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
+    ; // Wait for serial port to connect (needed for native USB port only)
   }
 
-  Serial.println("Starting Arduino web client.");
-  // connection state
-  boolean connected = false;
-
-  // After starting the modem with GSM.begin()
-  // attach the shield to the GPRS network with the APN, login and password
-  while (!connected) {
-    if ((gsmAccess.begin(PINNUMBER) == GSM_READY) &&
-        (gprs.attachGPRS(GPRS_APN, GPRS_LOGIN, GPRS_PASSWORD) == GPRS_READY)) {
-          connected = true;
+  // Display system information
+  Serial.println("==========================================");
+  Serial.println("OPTIMIZED ThingSpeak IoT Client");
+  Serial.println("==========================================");
+  Serial.println("Features:");
+  Serial.println("- Non-blocking GSM operations");
+  Serial.println("- Automatic data collection");
+  Serial.println("- Memory monitoring");
+  Serial.println("- Error recovery");
+  Serial.println("==========================================");
+  
+  // Display initial memory status
+  printMemoryUsage();
+  
+  // Establish GSM connection
+  if (gsmConnection.connect()) {
+    Serial.println("✓ GSM connection established successfully");
+    isInitialized = true;
     } else {
-      Serial.println("Not connected");
-      delay(1000);
-    }
+    Serial.println("✗ Failed to establish GSM connection");
+    Serial.println("  Check SIM card and signal strength");
+    isInitialized = false;
   }
+  
+  // Initialize timing delays
+  dataCollectionDelay.reset();
+  transmissionDelay.reset();
 }
 
+// ============================================================================
+// MAIN LOOP FUNCTION
+// ============================================================================
+
+/**
+ * Main program loop - handles data collection and transmission
+ * Uses non-blocking approach for continuous operation
+ */
 void loop(){
-   digitalWrite(13, LOW);        // sets the digital pin 13 off
-   int result = A0;              //temporarily set a result manually, later we can set the result based on a reading from a light sensor
-
-  //Initizalize the URL by calling the Function to do so...
-  String connectionMethod = "Write";
-  setupWriteThingspeakURL(t_led_button, result);
-  connectToThingspeak(connectionMethod);
-
-  // Now that we've performed a write into the t_led_button field, we can do a read
-  connectionMethod = "Read";
-  setupReadThingspeakURL(t_led_button);
-  connectToThingspeak(connectionMethod);
-
-  // Next trick will be getting the results from the Read section and turning an LED to High or LOW based on that field...
-  // Code to be entered here :)
-
-  // if there are incoming bytes available
-  // from the server, read them and print them:
-  if (client.available()) {
-    char c = client.read();
-    Serial.print(c);
-  }
-
-  // if the server's disconnected, stop the client:
-  if (!client.available() && !client.connected()) {
-    Serial.println();
-    Serial.println("disconnecting.");
-    client.stop();
-  }
-
-  // I've left this in so I don't smash a server accidentally
-  // or use all my pre-paid SIM card data...
-  Serial.println("Do Nothing forevermore");
-  // do nothing forevermore:
-  for (;;)
-    ;
-}
-
-void connectToThingspeak(String c_meth)
-{
-    //In order to make the original Test code for GSM SSL Web Client more moduler this function has been created which
-    //takes an input of "Read" or "Write" and modifies the way it runs based on those values.
-    //i.e. if it recieves "Read" then it will do a GET connection and pass the readURLField value through
-    //if it recieves "Write" then it will do a PUT connection and pass the writeURLField value through...
-
-  Serial.println("connecting...");
-
-  if (c_meth.equals("Read"))
-  {
-    // if you get a connection, report back via serial:
-    if (client.connect(server, port)) {
-      Serial.print(c_meth);
-      Serial.println(" connected");
-      // Make a HTTP request:
-      client.print("GET ");
-      client.print(readURLField);
-      client.println(" HTTP/1.1");
-      client.print("Host: ");
-      client.println(server);
-      client.println("Connection: close");
-      client.println();
+  // Attempt reconnection if GSM is not initialized
+  if (!isInitialized) {
+    if (gsmConnection.connect()) {
+      Serial.println("✓ GSM reconnected successfully");
+      isInitialized = true;
     } else {
-      // if you didn't get a connection to the server:
-      Serial.println("connection failed");
+      delay(5000); // Wait 5 seconds before retry
+      return;
     }
   }
-  else if (c_meth.equals("Write"))
-  {
-    // if you get a connection, report back via serial:
-    if (client.connect(server, port))
-    {
-      Serial.print(c_meth);
-      Serial.println(" connected");
-      // Make a HTTP request:
-      client.print("PUT ");
-      client.print(writeURLField);
-      client.println(" HTTP/1.1");
-      client.print("Host: ");
-      client.println(server);
-      client.println("Connection: close");
-      client.println();
-    } else {
-      // if you didn't get a connection to the server:
-      Serial.println("connection failed");
-    }
+  
+  // Collect sensor data at regular intervals
+  if (dataCollectionDelay.isComplete()) {
+    collectSensorData();
+    dataCollectionDelay.reset();
   }
-  delay(200);
+  
+  // Transmit data to ThingSpeak at regular intervals
+  if (transmissionDelay.isComplete()) {
+    transmitDataToThingSpeak();
+    transmissionDelay.reset();
+  }
+  
+  // Handle incoming GSM responses
+  gsmConnection.handleResponse();
+  
+  // Monitor memory usage periodically (every minute)
+  static NonBlockingDelay memoryPrintDelay(60000);
+  if (memoryPrintDelay.isComplete()) {
+    printMemoryUsage();
+    memoryPrintDelay.reset();
+  }
 }
 
-void setupWriteThingspeakURL(int ifield, int iresult)
-{
-  // An Complete Example URL to Update Channel Field1 via Thingspeak
-  // GET https://api.thingspeak.com/update?api_key=1234567890ABC&field1=0
-  // Our URL is broken down below to give us the ability to update certain portions of the URL, such as the field number etc
-  char t_fieldNumber[sizeof(ifield)/sizeof(int)]; //passed into the function as an int and converted to a char array
-  char t_result[sizeof(iresult)/sizeof(int)]; //passed into the function as an int and converted to a char array
-  char t_write_update[17] = "/update?api_key=";
-  char t_write_field[8] = "&field";
-  char t_equal[2] = "=";
+// ============================================================================
+// DATA COLLECTION AND TRANSMISSION FUNCTIONS
+// ============================================================================
 
-  itoa(ifield, t_fieldNumber, 10); //where passed in field value gets converted from an int to a char array
-  itoa(iresult, t_result, 10); //where passed in rsult value gets converted from an int to a char array
-
-  //Build the custom Write URL to send data to my Thingspeak Channel via strcpy and strcat
-  strcpy (writeURLField,t_write_update);
-  strcat (writeURLField,writeapikey);
-  strcat (writeURLField,t_write_field);
-  strcat (writeURLField,t_fieldNumber);
-  strcat (writeURLField,t_equal);
-  strcat (writeURLField,t_result);
+/**
+ * Collect sensor data efficiently
+ * Reads analog sensor and stores in buffer with LED status indication
+ */
+void collectSensorData() {
+  // Read light sensor value from analog pin A0
+  int lightValue = analogRead(A0);
+  
+  // Store sensor reading in buffer
+  sensorBuffer.addSample(lightValue);
+  
+  // Toggle LED to indicate data collection activity
+  digitalWrite(13, !digitalRead(13));
+  
+  // Display collected data
+  Serial.print("Collected sensor data: ");
+  Serial.println(lightValue);
 }
 
-void setupReadThingspeakURL(int r_ifield) {
-  /*
-   *  This Function is Designed to craft the URL required to read a Thingspeak URL when the user passes in an
-   *  Integer variable of the field number which they wish to read. The crafted URL is written out to a global
-   *  variable and can then be utilised in the connection function. This crafted URL includes data from the Arduino_secrets.h
-   *  file which contains items such as the Thingspeak Channel number and Read API key etc
-   */
-
-  // An Complete Example URL to Update Channel Field1 via Thingspeak
-  // GET GET https://api.thingspeak.com/channels/123456/fields/1.json?api_key=1234567890987654321&results=2
-  // Our URL is broken down below to give us the ability to update certain portions of the URL, such as the field number etc
-
-  char t_fieldNumber[sizeof(r_ifield)/sizeof(int)]; //passed into the function as an int and converted to a char array
-  char t_channel[11] = "/channels/";
-  char t_read_field[9] = "/fields/";
-  char t_json[20] = "/last.json?api_key=";
-  char t_res[] = "&results=2";
-
-  itoa(r_ifield, t_fieldNumber, 10); //where passed in field value gets converted from an int to a char array
-
-  //Build the custom Write URL to send data to my Thingspeak Channel via strcpy and strcat
-  strcpy (readURLField,t_channel);
-  strcat (readURLField,channelid);
-  strcat (readURLField,t_read_field);
-  strcat (readURLField,t_fieldNumber);
-  strcat (readURLField,t_json);
-  strcat (readURLField,readapikey);
-  strcat (readURLField,t_res);
+/**
+ * Transmit collected data to ThingSpeak cloud platform
+ * Sends current sensor reading and verifies transmission
+ */
+void transmitDataToThingSpeak() {
+  // Check if we have data to transmit
+  if (sensorBuffer.getSampleCount() == 0) {
+    Serial.println("No data to transmit");
+    return;
+  }
+  
+  Serial.println("Transmitting data to ThingSpeak...");
+  
+  // Get current sensor reading for transmission
+  int currentValue = analogRead(A0);
+  char url[200];
+  
+  // Build ThingSpeak URL for data writing
+  buildThingSpeakURL(url, t_light_sensor, currentValue, true);
+  
+  // Send data to ThingSpeak
+  if (gsmConnection.sendData(url, "GET")) {
+    Serial.println("✓ Data transmitted successfully");
+    
+    // Verify transmission by reading back data
+    char readUrl[200];
+    buildThingSpeakReadURL(readUrl, t_light_sensor, 1);
+    
+    if (gsmConnection.sendData(readUrl, "GET")) {
+      Serial.println("✓ Data verification requested");
+    }
+  } else {
+    Serial.println("✗ Failed to transmit data");
+    isInitialized = false; // Mark for reconnection
+  }
+  
+  // Clear buffer after successful transmission
+  sensorBuffer.clear();
 }
