@@ -49,7 +49,7 @@ const int CHUNK_SIZE = 216;         // Characters per data chunk for transmissio
 GSMConnection gsmConnection;                    // GSM connection manager
 SensorBuffer sensorBuffer;                      // Efficient sensor data storage
 NonBlockingDelay sampleDelay(100);              // Delay between samples (100ms)
-NonBlockingDelay transmissionDelay(5000);      // Delay between transmissions (5s)
+NonBlockingDelay transmissionDelay(5000);       // Delay between transmissions (5s)
 bool isInitialized = false;                     // GSM connection status flag
 int currentCycle = 0;                           // Current collection cycle counter
 int samplesCollected = 0;                       // Samples collected in current cycle
