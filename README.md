@@ -1,12 +1,8 @@
-# MKR1400-Nust
-
 ## 🎯 Project Overview
-
-This work was done as part of **"Autonomous 11kV Distribution Line Fault Localization System"** project funded by USAID at [USPCAS-E](https://uspcase.nust.edu.pk/) under the guidance of Dr. Arsalan Habib Khawaja.
 
 The main objective of the project was to develop a **non-contact magnetic-field measurement system** with wireless sensor unit for data collection and fault localization within the fault span. Particularly, the research focuses on developing an autonomous and portable wireless smart sensor device to be deployed at various nodes of power distribution network.
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 ### Hardware Setup
 1. **MKR GSM 1400 Board** - Main microcontroller with cellular capability
@@ -30,7 +26,7 @@ The main objective of the project was to develop a **non-contact magnetic-field 
 4. **Send 'c'** to test voice calls
 5. **Upload Task2-Thingspeak-test.ino** for IoT data transmission
 
-## 📋 Available Sketches
+## Available Sketches
 
 | Sketch | Purpose | Key Features |
 |--------|---------|--------------|
@@ -39,7 +35,7 @@ The main objective of the project was to develop a **non-contact magnetic-field 
 | `Circuitsbreaker&GSMtesting.ino` | High-Frequency Data Collection | 432 samples/cycle, Data chunking |
 | `HTTP-GSM-cloud requests.ino` | Direct HTTP Communication | AT commands, State machine |
 
-## ⚙️ Configuration
+## Configuration
 
 ### ThingSpeak Setup
 1. Create account at [thingspeak.com](https://thingspeak.com)
@@ -53,7 +49,7 @@ The main objective of the project was to develop a **non-contact magnetic-field 
 - **Password**: Usually empty
 - **PIN**: Configure if SIM requires PIN
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 - **"GSM module not responding"** → Check wiring and power supply
@@ -98,51 +94,14 @@ The optimized code includes built-in monitoring:
 - **[VERSION_HISTORY.md](VERSION_HISTORY.md)** - Version history and migration guide
 - **[GSM_Config_Template.h](GSM_Config_Template.h)** - Configuration template
 
-## 🛠 Technical Architecture
-
-### Core Components
-- **GSM_Utils Library** - Reusable utility functions
-- **NonBlockingDelay Class** - Non-blocking timing operations
-- **SensorBuffer Class** - Efficient data collection and storage
-- **GSMConnection Class** - Connection management with auto-recovery
-
-### Data Flow
-1. **Sensor Data Collection** - High-frequency sampling from magnetic field sensors
-2. **Data Buffering** - Efficient storage and chunking for large datasets
-3. **GSM Transmission** - Cellular communication to cloud platforms
-4. **ThingSpeak Integration** - Real-time data logging and visualization
-5. **Error Recovery** - Automatic reconnection and retry mechanisms
-
-## 🎯 Applications
-
-### Primary Use Case
-- **11kV Distribution Line Monitoring** - Fault detection and localization
-- **Magnetic Field Analysis** - Non-contact measurement system
-- **Remote Sensor Networks** - Autonomous wireless sensor deployment
-- **Power Grid Monitoring** - Real-time fault detection and reporting
-
-### Extended Applications
-- **Industrial IoT** - Remote monitoring systems
-- **Environmental Monitoring** - Sensor data collection
-- **Research Projects** - Data logging and analysis
-- **Educational Projects** - IoT and GSM communication learning
-
-## 📞 Support
-
-For technical support or questions:
-- Check the detailed `OPTIMIZATION_SUMMARY.md`
-- Review inline code comments
-- Monitor Serial output for error messages
-- Verify hardware connections and network settings
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👥 Contributors
 
-- **Original Development**: M. Rakeh Saleem (2018)
-- **Optimization & Documentation**: AI Assistant (2024)
+- **Original Development**: Rakeh Saleem (2018)
+- **Optimization & Documentation**: Rakeh Saleem (2024)
 - **Project Guidance**: Dr. Arsalan Habib Khawaja
 - **Funding**: USAID at USPCAS-E, NUST
 
