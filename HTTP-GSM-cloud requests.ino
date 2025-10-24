@@ -29,7 +29,6 @@
  * 5. Data transmission and monitoring
  * 
  * Original Code: Modified from various GSM tutorials
- * OPTIMIZED for performance and reliability - 2024
  */
 
 #include <SoftwareSerial.h>
